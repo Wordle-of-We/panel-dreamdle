@@ -3,24 +3,17 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2 } from 'lucide-react'
 import { DataTable } from '../../../components/DataTable'
-import { Modal } from '../../../components/Modal'
+import { FranchiseModal } from '../../../components/FranchiseModal'
 import { useToast } from '../../../hooks/useToast'
 import { franchiseService } from '../../../services/franchises'
 import type { Franchise, UpdateFranchiseDto } from '../../../interfaces'
-import Image from 'next/image'
-
-interface FormData {
-  name: string
-  file?: File
-  imageUrl?: string
-}
 
 export default function Franchises() {
   const [franchises, setFranchises] = useState<Franchise[]>([])
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingFranchise, setEditingFranchise] = useState<Franchise | null>(null)
-  const [formData, setFormData] = useState<FormData>({ name: '', imageUrl: '' })
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -50,53 +43,52 @@ export default function Franchises() {
     }
   }
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formData.name.trim()) {
+  const handleSaveFranchise = async (data: { name: string; file?: File; imageUrl?: string }) => {
+    if (!data.name.trim()) {
       showToast('error', 'Nome da franquia é obrigatório')
       return
     }
 
+    setSaving(true)
     try {
       if (editingFranchise) {
-        const dto: UpdateFranchiseDto = { name: formData.name }
+        const dto: UpdateFranchiseDto = { name: data.name }
         await franchiseService.update(editingFranchise.id.toString(), dto)
 
-        if (formData.file || formData.imageUrl) {
+        if (data.file || data.imageUrl) {
           await franchiseService.updateImage(
             editingFranchise.id.toString(),
-            formData.file,
-            formData.imageUrl,
+            data.file,
+            data.imageUrl
           )
         }
 
         showToast('success', 'Franquia atualizada com sucesso')
       } else {
         await franchiseService.createWithImage(
-          formData.name,
-          formData.file,
-          formData.imageUrl,
+          data.name,
+          data.file,
+          data.imageUrl
         )
         showToast('success', 'Franquia criada com sucesso')
       }
 
       setIsModalOpen(false)
       setEditingFranchise(null)
-      setFormData({ name: '', file: undefined, imageUrl: '' })
       loadFranchises()
     } catch (error: any) {
       showToast('error', error.response?.data?.message || 'Erro ao salvar franquia')
+    } finally {
+      setSaving(false)
     }
   }
 
   const openEditModal = (fr: Franchise) => {
     setEditingFranchise(fr)
-    setFormData({ name: fr.name, file: undefined, imageUrl: '' })
     setIsModalOpen(true)
   }
   const openCreateModal = () => {
     setEditingFranchise(null)
-    setFormData({ name: '', file: undefined, imageUrl: '' })
     setIsModalOpen(true)
   }
 
@@ -111,8 +103,7 @@ export default function Franchises() {
       key: 'createdAt',
       label: 'Criado em',
       sortable: true,
-      render: (fr: Franchise) =>
-        new Date(fr.createdAt).toLocaleDateString('pt-BR'),
+      render: (fr: Franchise) => new Date(fr.createdAt).toLocaleDateString('pt-BR'),
     },
     {
       key: 'actions',
@@ -156,77 +147,13 @@ export default function Franchises() {
         loading={loading}
       />
 
-      <Modal
+      <FranchiseModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingFranchise ? 'Editar Franquia' : 'Nova Franquia'}
-      >
-        <form onSubmit={handleSave} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nome da Franquia *
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="w-full px-3 py-2 border rounded"
-              placeholder="Ex: Shrek"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              URL da Capa (opcional)
-            </label>
-            <input
-              type="url"
-              value={formData.imageUrl}
-              onChange={(e) =>
-                setFormData({ ...formData, imageUrl: e.target.value })
-              }
-              className="w-full px-3 py-2 border rounded"
-              placeholder="https://"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upload de Imagem (opcional)
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  file: e.target.files ? e.target.files[0] : undefined,
-                })
-              }
-              className="w-full"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              {editingFranchise ? 'Atualizar' : 'Criar'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </Modal>
+        initialData={editingFranchise ? { name: editingFranchise.name, imageUrl: editingFranchise.imageUrl } : undefined}
+        loading={saving}
+        onSave={handleSaveFranchise}
+      />
     </div>
   )
 }

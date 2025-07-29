@@ -30,21 +30,19 @@ export interface Character {
   race: string[];
   ethnicity: string[];
   hair: string;
-  aliveStatus: 'ALIVE' | 'DEAD' | 'UNKNOWN';
-  isProtagonist: boolean;
-  isAntagonist: boolean;
+  aliveStatus: 'ALIVE' | 'DEAD';
+  paper?: boolean;
 
   imageUrl1?: string;
   imageUrl2?: string;
+
+  franchises: { id: number; name: string }[]
+  franchiseNames: string[]
 
   file1?: File;
   file2?: File;
   imageUrl1Input?: string;
   imageUrl2Input?: string;
-
-  franchiseNames: string[];
-  franchiseId: string;
-  franchise: Franchise;
 
   createdAt: string;
   updatedAt: string;
@@ -91,13 +89,24 @@ export interface UpdateCharacterDto {
 }
 
 export interface GameMode {
-  id: string;
-  name: 'CHARACTERISTICS' | 'DESCRIPTION' | 'IMAGE' | 'EMOJI';
-  description: string;
-  isActive: boolean;
-  scheduledFor: string;
-  createdAt: string;
-  updatedAt: string;
+  id: number
+  name: string
+  description: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateGameModeDto {
+  name: string
+  description: string
+  isActive: boolean
+}
+
+export interface UpdateGameModeDto {
+  name?: string
+  description?: string
+  isActive?: boolean
 }
 
 export interface GamePlay {
@@ -144,4 +153,27 @@ export interface KPI {
   topCharacters: {
     [mode: string]: Array<{ character: string; count: number }>;
   };
+}
+
+export interface DailyOverview {
+  date: string;
+  totalUsersEver: number;
+  totalNewUsers: number;
+  totalInitiatedPlays: number;
+  totalCompletedPlays: number;
+  totalUncompletedPlays: number;
+  playsByMode: Record<
+    string,
+    { initiated: number; completed: number; uncompleted: number }
+  >;
+}
+
+export interface ModeStats {
+  modeConfigId: number;
+  modeName: string;
+  initiatedPlays: number;
+  completedPlays: number;
+  uncompletedPlays: number;
+  averageAttempts: number;
+  uniqueUsers: number;
 }
