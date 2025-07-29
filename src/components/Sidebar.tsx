@@ -29,10 +29,10 @@ const menuItems = [
   { id: 'characters', label: 'Personagens', icon: Users },
   { id: 'game-modes', label: 'Modos de Jogo', icon: GameController2 },
   { id: 'games', label: 'Partidas', icon: Play },
-  { id: 'attempts', label: 'Tentativas', icon: Target },
+  // { id: 'attempts', label: 'Tentativas', icon: Target },
   { id: 'users', label: 'Usuários', icon: Users },
-  { id: 'logs', label: 'Logs de Acesso', icon: BarChart3 },
-  { id: 'settings', label: 'Configurações', icon: Settings },
+  // { id: 'logs', label: 'Logs de Acesso', icon: BarChart3 },
+  // { id: 'settings', label: 'Configurações', icon: Settings },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {

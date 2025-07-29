@@ -1,10 +1,11 @@
+import { ChartData } from 'chart.js'
+
 export interface User {
-  id: string;
+  id: number;
   email: string;
   role: 'ADMIN' | 'USER';
-  status: 'ACTIVE' | 'INACTIVE';
   createdAt: string;
-  lastAccess?: string;
+  updatedAt: string;
 }
 
 export interface Franchise {
@@ -142,19 +143,6 @@ export interface AccessLog {
   timestamp: string;
 }
 
-export interface KPI {
-  totalUsers: number;
-  activeUsers: number;
-  dailyGames: number;
-  totalAttempts: number;
-  successRate: {
-    [mode: string]: number;
-  };
-  topCharacters: {
-    [mode: string]: Array<{ character: string; count: number }>;
-  };
-}
-
 export interface DailyOverview {
   date: string;
   totalUsersEver: number;
@@ -176,4 +164,21 @@ export interface ModeStats {
   uncompletedPlays: number;
   averageAttempts: number;
   uniqueUsers: number;
+}
+
+export interface TopCharacter {
+  character: string
+  count: number
+}
+
+export interface KPI {
+  totalUsers: number
+  activeUsers: number
+  dailyGames: number
+  totalAttempts: number
+  topCharacters: Record<string, TopCharacter[]>
+
+  accessData: ChartData<'line', number[], string>
+  modeUsageData: ChartData<'pie', number[], string>
+  attemptsData: ChartData<'bar', number[], string>
 }

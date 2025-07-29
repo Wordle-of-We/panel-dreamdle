@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
-import { Line, Bar, Pie } from 'react-chartjs-2';
+import React, { useState, useEffect } from 'react'
+import { Line, Bar, Pie } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,10 +13,10 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
-import { Users, TowerControl as GameController2, Target } from 'lucide-react';
-import api from '../../../services/api';
-import { KPI } from '../../../interfaces';
+} from 'chart.js'
+import { Users, TowerControl as GameController2, Target } from 'lucide-react'
+import api from '@/services/api'
+import { KPI } from '@/interfaces'
 
 ChartJS.register(
   CategoryScale,
@@ -28,163 +28,170 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend
-);
+)
 
 export default function Dashboard() {
-  const [kpis, setKpis] = useState<KPI | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadKPIs();
-  }, []);
+  const [kpis, setKpis] = useState<KPI | null>(null)
+  const [loading, setLoading] = useState(true)
 
   const loadKPIs = async () => {
+    setLoading(true)
     try {
-      const response = await api.get('/admin/dashboard/kpis');
-      setKpis(response.data);
-    } catch (error) {
-      console.error('Erro ao carregar KPIs:', error);
+      const { data } = await api.get<KPI>('/admin/dashboard/kpis')
+      setKpis(data)
+    } catch (err) {
+      console.error('Erro ao carregar KPIs:', err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
   }
 
+  useEffect(() => {
+    loadKPIs()
+  }, [])
+
+  if (loading || !kpis) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800"></div>
+      </div>
+    )
+  }
+
+  // cards de resumo
   const kpiCards = [
     {
       title: 'Total de Usuários',
-      value: kpis?.totalUsers || 0,
+      value: kpis.totalUsers,
       icon: Users,
-      color: 'text-blue-600 bg-blue-100',
+      color: 'text-blue-800 bg-blue-200',
     },
     {
       title: 'Usuários Ativos',
-      value: kpis?.activeUsers || 0,
+      value: kpis.activeUsers,
       icon: Users,
-      color: 'text-green-600 bg-green-100',
+      color: 'text-green-800 bg-green-200',
     },
     {
       title: 'Partidas Diárias',
-      value: kpis?.dailyGames || 0,
+      value: kpis.dailyGames,
       icon: GameController2,
-      color: 'text-purple-600 bg-purple-100',
+      color: 'text-purple-800 bg-purple-200',
     },
     {
       title: 'Total de Tentativas',
-      value: kpis?.totalAttempts || 0,
+      value: kpis.totalAttempts,
       icon: Target,
-      color: 'text-orange-600 bg-orange-100',
+      color: 'text-orange-800 bg-orange-200',
     },
-  ];
+  ]
 
+  // opções comuns dos charts
+  const chartOptions = {
+    responsive: true,
+    plugins: { legend: { position: 'top' as const } },
+    scales: { y: { beginAtZero: true } },
+  }
+
+  // montar os dados do gráfico de acessos vs tentativas
   const accessData = {
-    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+    labels: kpis.accessData.labels,
     datasets: [
       {
         label: 'Acessos',
-        data: [12, 19, 3, 5, 2, 3],
-        borderColor: 'rgb(37, 99, 235)',
-        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+        data:
+          kpis.accessData.datasets.find(ds => ds.label === 'Acessos')
+            ?.data || [],
+        borderColor: 'rgb(29, 78, 216)',
+        backgroundColor: 'rgba(29, 78, 216, 0.1)',
         tension: 0.4,
       },
       {
         label: 'Tentativas',
-        data: [8, 15, 25, 35, 20, 15],
-        borderColor: 'rgb(5, 150, 105)',
-        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+        data:
+          kpis.accessData.datasets.find(
+            ds => ds.label === 'Tentativas'
+          )?.data || [],
+        borderColor: 'rgb(4, 120, 87)',
+        backgroundColor: 'rgba(4, 120, 87, 0.1)',
         tension: 0.4,
       },
     ],
-  };
+  }
 
+  // gráfico de uso por modo
   const modeUsageData = {
-    labels: ['Características', 'Descrição', 'Imagem', 'Emoji'],
+    labels: kpis.modeUsageData.labels,
     datasets: [
       {
-        data: [30, 25, 25, 20],
+        data: kpis.modeUsageData.datasets[0]?.data || [],
         backgroundColor: [
-          'rgba(37, 99, 235, 0.8)',
-          'rgba(5, 150, 105, 0.8)',
-          'rgba(234, 88, 12, 0.8)',
-          'rgba(168, 85, 247, 0.8)',
+          'rgba(29, 78, 216, 0.8)',
+          'rgba(4, 120, 87, 0.8)',
+          'rgba(194, 65, 12, 0.8)',
+          'rgba(126, 34, 206, 0.8)',
         ],
         borderWidth: 0,
       },
     ],
-  };
+  }
 
+  // gráfico de tentativas vs acertos por modo
   const attemptsData = {
-    labels: ['Características', 'Descrição', 'Imagem', 'Emoji'],
+    labels: kpis.attemptsData.labels,
     datasets: [
       {
         label: 'Tentativas',
-        data: [120, 95, 80, 65],
-        backgroundColor: 'rgba(37, 99, 235, 0.8)',
+        data: kpis.attemptsData.datasets[0]?.data || [],
+        backgroundColor: 'rgba(29, 78, 216, 0.8)',
       },
       {
         label: 'Acertos',
-        data: [85, 70, 55, 45],
-        backgroundColor: 'rgba(5, 150, 105, 0.8)',
+        data: kpis.attemptsData.datasets[1]?.data || [],
+        backgroundColor: 'rgba(4, 120, 87, 0.8)',
       },
     ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
-    },
-  };
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
         <button
           onClick={loadKPIs}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition-colors"
         >
           Atualizar
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {kpiCards.map((kpi, index) => {
-          const Icon = kpi.icon;
+        {kpiCards.map((kpi, idx) => {
+          const Icon = kpi.icon
           return (
-            <div key={index} className="bg-white rounded-lg shadow p-6">
+            <div key={idx} className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <div className={`p-3 rounded-full ${kpi.color}`}>
                   <Icon className="w-6 h-6" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">{kpi.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{kpi.value.toLocaleString()}</p>
+                  <p className="text-sm font-medium text-gray-700">
+                    {kpi.title}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {kpi.value.toLocaleString()}
+                  </p>
                 </div>
               </div>
             </div>
-          );
+          )
         })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Acessos vs tentativas (24h)
+            Acessos vs Tentativas (24h)
           </h3>
           <Line data={accessData} options={chartOptions} />
         </div>
@@ -204,26 +211,29 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Top 5 Personagens por Modo
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Object.entries(kpis?.topCharacters || {}).map(([mode, characters]) => (
-              <div key={mode} className="space-y-2">
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Top 5 Personagens por Modo
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Object.entries(kpis.topCharacters).map(
+            ([mode, chars], idx) => (
+              <div key={idx} className="space-y-2">
                 <h4 className="font-medium text-gray-900">{mode}</h4>
-                {characters.map((char, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{char.character}</span>
-                    <span className="font-medium">{char.count}</span>
+                {chars.map((tc, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between text-sm text-gray-700"
+                  >
+                    <span>{tc.character}</span>
+                    <span className="font-medium">{tc.count}</span>
                   </div>
                 ))}
               </div>
-            ))}
-          </div>
+            )
+          )}
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
