@@ -1,25 +1,27 @@
 import api from './api';
-import { User } from '../interfaces';
+import type { User } from '../interfaces';
 
 export const authService = {
-  async login(email: string, password: string): Promise<{ token: string; user: User }> {
-    const response = await api.post('/auth/login', { email, password });
-    return response.data;
+  async login(
+    email: string,
+    password: string
+  ): Promise<{ token: string; user: User }> {
+    const response = await api.post<{ token: string; user: User }>(
+      '/auth/login',
+      { email, password }
+    );
+    const { token, user } = response.data;
+    localStorage.setItem('adminToken', token);
+    return { token, user };
   },
 
   async getProfile(): Promise<User> {
-    const response = await api.get('/auth/profile', { withCredentials: true });
+    const response = await api.get<User>('/auth/profile');
     return response.data;
   },
 
-  async logout() {
-    try {
-      await api.post('/auth/logout');
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-    } finally {
-      window.location.href = '/';
-    }
-  }
-
+  logout() {
+    localStorage.removeItem('adminToken');
+    window.location.href = '/login';
+  },
 };
