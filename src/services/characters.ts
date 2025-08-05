@@ -24,9 +24,6 @@ export const characterService = {
     formData.append('description', data.description)
     formData.append('gender', data.gender)
     formData.append('aliveStatus', data.aliveStatus.toString())
-    formData.append('isProtagonist', JSON.stringify(data.isProtagonist))
-    formData.append('isAntagonist', JSON.stringify(data.isAntagonist))
-
     if (data.emojis) {
       formData.append('emojis', JSON.stringify(data.emojis))
     }
@@ -35,6 +32,9 @@ export const characterService = {
     }
     if (data.ethnicity) {
       formData.append('ethnicity', JSON.stringify(data.ethnicity))
+    }
+    if (data.paper) {
+      formData.append('paper', JSON.stringify(data.paper))
     }
     if (data.hair) {
       formData.append('hair', data.hair)

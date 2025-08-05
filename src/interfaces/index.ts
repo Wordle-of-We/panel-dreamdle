@@ -32,7 +32,7 @@ export interface Character {
   ethnicity: string[];
   hair: string;
   aliveStatus: 'ALIVE' | 'DEAD';
-  paper?: boolean;
+  paper: string[];
 
   imageUrl1?: string;
   imageUrl2?: string;
@@ -58,8 +58,7 @@ export interface CreateCharacterDto {
   ethnicity?: string[]
   hair: string
   aliveStatus: 'ALIVE' | 'DEAD' | 'UNKNOWN'
-  isProtagonist: boolean
-  isAntagonist: boolean
+  paper?: string[]
   imageUrl1?: string
   imageUrl2?: string
   franchiseIds?: string[]
@@ -74,8 +73,7 @@ export interface UpdateCharacterDto {
   ethnicity?: string[];
   hair?: string;
   aliveStatus?: 'ALIVE' | 'DEAD' | 'UNKNOWN';
-  isProtagonist?: boolean;
-  isAntagonist?: boolean;
+  paper?: string[];
 
   imageUrl1?: string;
   imageUrl2?: string;

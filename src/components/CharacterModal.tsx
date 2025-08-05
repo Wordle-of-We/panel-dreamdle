@@ -9,7 +9,7 @@ export interface CharacterModalData
   emojis: string[]
   race: string[]
   ethnicity: string[]
-  paper?: boolean
+  paper?: string[]
   file1?: File
   file2?: File
 }
@@ -33,7 +33,7 @@ const defaultForm = (): CharacterModalData => ({
   gender: 'MALE',
   hair: '',
   aliveStatus: 'ALIVE',
-  paper: false,
+  paper: [''],
   franchiseIds: [],
   imageUrl1: '',
   imageUrl2: '',
@@ -68,7 +68,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
         gender: initialData.gender,
         hair: initialData.hair,
         aliveStatus: initialData.aliveStatus,
-        paper: initialData.paper ?? false,
+        paper: Array.isArray(initialData.paper) ? initialData.paper : [''],
         franchiseIds: initialData.franchiseIds,
         imageUrl1: initialData.imageUrl1 ?? '',
         imageUrl2: initialData.imageUrl2 ?? '',
@@ -85,16 +85,16 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
   const handleChange = <K extends keyof CharacterModalData>(key: K, value: CharacterModalData[K]) =>
     setForm(prev => ({ ...prev, [key]: value }))
 
-  const handleArrayChange = (key: 'emojis' | 'race' | 'ethnicity', idx: number, value: string) => {
-    const arr = [...form[key]]; arr[idx] = value
+  const handleArrayChange = (key: 'emojis' | 'race' | 'ethnicity' | 'paper', idx: number, value: string) => {
+    const arr = [...(form[key] ?? [])]; arr[idx] = value
     handleChange(key, arr as any)
   }
 
-  const handleAddField = (key: 'race' | 'ethnicity') =>
-    handleChange(key, [...form[key], ''] as any)
+  const handleAddField = (key: 'race' | 'ethnicity' | 'paper') =>
+    handleChange(key, [...(form[key] ?? []), ''] as any)
 
-  const handleRemoveField = (key: 'race' | 'ethnicity', idx: number) => {
-    const arr = form[key].filter((_, i) => i !== idx)
+  const handleRemoveField = (key: 'race' | 'ethnicity' | 'paper', idx: number) => {
+    const arr = (form[key] ?? []).filter((_, i) => i !== idx)
     handleChange(key, (arr.length ? arr : ['']) as any)
   }
 
@@ -174,14 +174,33 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={form.paper}
-            onChange={e => handleChange('paper', e.target.checked as any)}
-            className="h-5 w-5 text-gray-900 border-gray-700 rounded focus:ring-gray-600"
-          />
-          <label className="font-medium">É paper?</label>
+        <div>
+          <label className="block text-sm font-semibold mb-1">Paper</label>
+          {form.paper?.map((val, idx) => (
+            <div key={idx} className="flex items-center space-x-2 mb-2">
+              <input
+          type="text"
+          value={val}
+          onChange={e => handleArrayChange('paper', idx, e.target.value)}
+          className="flex-1 px-3 py-2 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 placeholder-gray-500"
+          placeholder="Ex: Paper 1"
+              />
+              <button
+          type="button"
+          onClick={() => handleRemoveField('paper', idx)}
+          className="px-2 py-1 text-red-700 hover:bg-red-100 rounded"
+              >
+          ✕
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => handleAddField('paper')}
+            className="px-3 py-1 bg-gray-800 text-white rounded hover:bg-gray-700"
+          >
+            + Adicionar Paper
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
