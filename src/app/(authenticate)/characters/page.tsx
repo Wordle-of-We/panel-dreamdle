@@ -136,11 +136,6 @@ export default function Characters() {
       ),
     },
     { key: 'gender', label: 'Gênero', sortable: true },
-    {
-      key: 'paper',
-      label: 'Paper',
-      render: (c: Character) => (c.paper ? 'Sim' : 'Não'),
-    },
     { key: 'aliveStatus', label: 'Status', sortable: true },
     {
       key: 'actions',
